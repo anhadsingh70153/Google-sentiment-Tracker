@@ -1,0 +1,154 @@
+# 🔍 Google Brand Sentiment Tracker
+
+An end-to-end brand sentiment analytics pipeline that tracks public perception on social media using a modern data stack — Python, Snowflake, dbt, VADER NLP, and Tableau Public.
+
+---
+
+## 📊 Live Dashboard
+[View on Tableau Public](your-tableau-link-here)
+
+---
+
+## 🏗️ Pipeline Architecture
+
+Raw Tweets (CSV) → Python Ingestion → Snowflake (Raw Layer) → VADER Sentiment Scoring → dbt Transformation → Snowflake (Analytics Layer) → Tableau Dashboard
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tool | Purpose |
+|---|---|---|
+| Ingestion | Python + pandas | Read, clean and load CSV data |
+| Storage | Snowflake | Cloud data warehouse |
+| Transformation | dbt | SQL models and data lineage |
+| Sentiment | VADER NLP | Score every tweet from -1 to +1 |
+| Visualization | Tableau Public | Interactive dashboard |
+| Version Control | GitHub | Code management |
+
+---
+
+## 📁 Project Structure---
+
+## 🔑 Key Findings
+
+- **14,640 tweets** analyzed across 9 days (Feb 16–24, 2015)
+- **52% positive**, **31% negative**, **17% neutral** sentiment overall
+- **Feb 22** had the lowest sentiment score (0.067) with the highest tweet volume (6,158) — indicating a major negative event driving complaints
+- **Feb 16–17** showed the highest sentiment (0.29) — the most positive days in the dataset
+
+---
+
+## ⚙️ How to Run This Project
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/YOURUSERNAME/google-sentiment-tracker.git
+cd google-sentiment-tracker
+```
+
+### 2. Install dependencies
+```bash
+pip install pandas snowflake-connector-python vaderSentiment python-dotenv dbt-snowflake
+```
+
+### 3. Create your .env file
+### 4. Set up Snowflake tables
+Run this SQL in your Snowflake worksheet:
+```sql
+CREATE DATABASE IF NOT EXISTS RAW_DB;
+CREATE DATABASE IF NOT EXISTS ANALYTICS_DB;
+CREATE SCHEMA IF NOT EXISTS RAW_DB.SOCIAL;
+CREATE SCHEMA IF NOT EXISTS ANALYTICS_DB.PUBLIC;
+
+CREATE TABLE IF NOT EXISTS RAW_DB.SOCIAL.google_tweets_raw (
+    tweet_id        VARCHAR,
+    created_at      TIMESTAMP,
+    text            VARCHAR,
+    username        VARCHAR,
+    likes           INTEGER,
+    retweets        INTEGER,
+    replies         INTEGER,
+    source          VARCHAR DEFAULT 'twitter',
+    loaded_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS RAW_DB.SOCIAL.sentiment_scores (
+    source_id       VARCHAR,
+    source_type     VARCHAR,
+    created_at      TIMESTAMP,
+    text            VARCHAR,
+    pos_score       FLOAT,
+    neg_score       FLOAT,
+    neu_score       FLOAT,
+    compound_score  FLOAT,
+    sentiment_label VARCHAR
+);
+```
+
+### 5. Run the ingestion pipeline
+```bash
+py ingestion/fetch_tweets.py
+```
+
+### 6. Run sentiment scoring
+```bash
+py sentiment/score_sentiment.py
+```
+
+### 7. Run dbt models
+```bash
+cd dbt_project
+dbt run
+```
+
+### 8. Verify in Snowflake
+```sql
+SELECT sentiment_label, COUNT(*) as count
+FROM RAW_DB.SOCIAL.sentiment_scores
+GROUP BY sentiment_label
+ORDER BY count DESC;
+
+SELECT * FROM ANALYTICS_DB.PUBLIC.fct_daily_summary
+ORDER BY post_date DESC;
+```
+
+---
+
+## 📊 Snowflake Schema
+---
+
+## 📈 Dashboard Views
+
+**1. Google Brand Sentiment Over Time**
+Line chart showing daily average compound sentiment score — reveals how public mood shifts day by day.
+
+**2. Daily Tweet Volume**
+Blue-teal gradient bar chart showing total tweets per day — highlights peak conversation days.
+
+**3. Daily Sentiment Breakdown**
+Stacked bar chart with green (positive), red (negative), and gray (neutral) — shows the proportion of each sentiment type per day.
+
+---
+
+## 🚀 Future Improvements
+
+- Add real-time ingestion using Twitter streaming API or Apache Kafka
+- Replace VADER with a fine-tuned BERT model for higher NLP accuracy
+- Add competitor comparison — Apple, Microsoft, Meta vs Google
+- Schedule the pipeline with Apache Airflow for daily automated updates
+- Add anomaly detection to automatically flag sentiment spikes
+
+---
+
+## 👤 Author
+
+**Anhad Singh**
+- LinkedIn: https://www.linkedin.com/in/anhad-singh0079/
+- GitHub: https://github.com/anhadsingh70153/
+
+---
+
+## 📄 License
+
+MIT License — free to use and modify.
